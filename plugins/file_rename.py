@@ -1,8 +1,8 @@
 import os
 import asyncio
 from PIL import Image
-from your_database_module import db  # Replace with actual import
-from your_helper_module import add_prefix_suffix, progress_for_pyrogram, humanbytes, convert, createParser, extractMetadata  # Replace with actual imports
+#from your_database_module import db  # Replace with actual import
+#from your_helper_module import add_prefix_suffix, progress_for_pyrogram, humanbytes, convert, createParser, extractMetadata  # Replace with actual imports
 from pyrogram import Client, filters
 from pyrogram.enums import MessageMediaType
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ForceReply

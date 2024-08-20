@@ -3,7 +3,77 @@ import asyncio
 from PIL import Image
 from your_database_module import db  # Replace with actual import
 from your_helper_module import add_prefix_suffix, progress_for_pyrogram, humanbytes, convert, createParser, extractMetadata  # Replace with actual imports
+from pyrogram import Client, filters
+from pyrogram.enums import MessageMediaType
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ForceReply
+from hachoir.metadata import extractMetadata
+from hachoir.parser import createParser
+from helper.utils import progress_for_pyrogram, convert, humanbytes
+from helper.database import db
+from PIL import Image
+import asyncio
+import os
+import time
+from helper.utils import add_prefix_suffix
+from config import Config
 
+
+app = Client("test", api_id=Config.STRING_API_ID,
+             api_hash=Config.STRING_API_HASH, session_string=Config.STRING_SESSION)
+
+# Define a function to handle the 'rename' callback
+
+
+@Client.on_callback_query(filters.regex('rename'))
+async def rename(bot, update):
+    await update.message.delete()
+    await update.message.reply_text("__𝙿𝚕𝚎𝚊𝚜𝚎 𝙴𝚗𝚝𝚎𝚛 𝙽𝚎𝚠 𝙵𝚒𝚕𝚎𝙽𝚊𝚖𝚎...__",
+                                    reply_to_message_id=update.message.reply_to_message.id,
+                                    reply_markup=ForceReply(True))
+
+# Define the main message handler for private messages with replies
+
+
+@Client.on_message(filters.private & filters.reply)
+async def refunc(client, message):
+    reply_message = message.reply_to_message
+    if isinstance(reply_message.reply_markup, ForceReply):
+        new_name = message.text
+        await message.delete()
+        msg = await client.get_messages(message.chat.id, reply_message.id)
+        file = msg.reply_to_message
+        media = getattr(file, file.media.value)
+        if not "." in new_name:
+            if "." in media.file_name:
+                extn = media.file_name.rsplit('.', 1)[-1]
+            else:
+                extn = "mkv"
+            new_name = new_name + "." + extn
+        await reply_message.delete()
+
+        # Use a list to store the inline keyboard buttons
+        button = [
+            [InlineKeyboardButton(
+                "📁 Dᴏᴄᴜᴍᴇɴᴛ", callback_data="upload_document")]
+        ]
+        if file.media in [MessageMediaType.VIDEO, MessageMediaType.DOCUMENT]:
+            button.append([InlineKeyboardButton(
+                "🎥 Vɪᴅᴇᴏ", callback_data="upload_video")])
+        elif file.media == MessageMediaType.AUDIO:
+            button.append([InlineKeyboardButton(
+                "🎵 Aᴜᴅɪᴏ", callback_data="upload_audio")])
+
+        # Use a single call to reply with both text and inline keyboard
+        await message.reply(
+            text=f"**Sᴇʟᴇᴄᴛ Tʜᴇ Oᴜᴛᴩᴜᴛ Fɪʟᴇ Tyᴩᴇ**\n**• Fɪʟᴇ Nᴀᴍᴇ :-**  `{new_name}`",
+            reply_to_message_id=file.id,
+            reply_markup=InlineKeyboardMarkup(button)
+        )
+
+# Define the callback for the 'upload' buttons
+
+
+@Client.on_callback_query(filters.regex("upload"))
 async def doc(bot, update):
 
     # Creating necessary directories
